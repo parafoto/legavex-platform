@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: legavex-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-legavex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-legavex_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-legavex_platform}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - legavex-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-legavex} -d ${POSTGRES_DB:-legavex_platform}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: legavex-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-legavex}:${POSTGRES_PASSWORD:-legavex_secure_password}@db:5432/${POSTGRES_DB:-legavex_platform}
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      SMTP_HOST: ${SMTP_HOST:-smtp.protonmail.ch}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-LegaVex}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      OFFER_TIMEOUT_HOURS: ${OFFER_TIMEOUT_HOURS:-24}
+      DEBUG: ${DEBUG:-false}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - legavex-network
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  legavex-network:
+    driver: bridge

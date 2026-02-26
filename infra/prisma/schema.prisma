@@ -1,0 +1,251 @@
+// This is your Prisma schema file for LegaVex Advisor Portal
+// Learn more about it: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  CLIENT
+  CONSULTANT
+  ADMIN
+}
+
+enum CaseStatus {
+  NEW
+  WAITING_CONSULTANT
+  IN_PROGRESS
+  REVIEW
+  DONE
+  CANCELLED
+  ESCALATED
+}
+
+enum AssignmentStatus {
+  OFFERED
+  ACCEPTED
+  DECLINED
+  REASSIGNED
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  SYSTEM
+}
+
+enum DocumentType {
+  DRAFT
+  FINAL
+  ATTACHMENT
+}
+
+enum DocumentStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum PayoutStatus {
+  PLANNED
+  PAID
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id           String   @id @default(cuid())
+  role         Role     @default(CLIENT)
+  name         String
+  email        String   @unique
+  passwordHash String?  @map("password_hash")
+  phone        String?
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  consultantProfile ConsultantProfile?
+  casesAsClient     Case[]           @relation("ClientCases")
+  caseAssignments   CaseAssignment[]
+  caseMessages      CaseMessage[]
+  caseDocuments     CaseDocument[]
+  payouts           Payout[]
+  auditLogs         AuditLog[]
+
+  @@map("users")
+}
+
+model ConsultantProfile {
+  id               String  @id @default(cuid())
+  userId           String  @unique @map("user_id")
+  specialization   String?
+  region           String?
+  seniorityLevel   String? @map("seniority_level")
+  isActive         Boolean @default(true) @map("is_active")
+  maxParallelCases Int     @default(3) @map("max_parallel_cases")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("consultant_profiles")
+}
+
+model Case {
+  id               String     @id @default(cuid())
+  clientId         String     @map("client_id")
+  title            String
+  description      String
+  clientEmail      String?    @map("client_email")
+  budgetMin        Float      @map("budget_min")
+  budgetMax        Float      @map("budget_max")
+  status           CaseStatus @default(NEW)
+  isReviewRequired Boolean    @default(true) @map("is_review_required")
+  useEmailDelivery Boolean    @default(false) @map("use_email_delivery")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  client      User             @relation("ClientCases", fields: [clientId], references: [id], onDelete: Cascade)
+  assignments CaseAssignment[]
+  messages    CaseMessage[]
+  documents   CaseDocument[]
+  payouts     Payout[]
+  emailLogs   EmailLog[]
+
+  @@map("cases")
+}
+
+model CaseAssignment {
+  id           String           @id @default(cuid())
+  caseId       String           @map("case_id")
+  consultantId String           @map("consultant_id")
+  status       AssignmentStatus @default(OFFERED)
+  assignedAt   DateTime         @default(now()) @map("assigned_at")
+  respondedAt  DateTime?        @map("responded_at")
+  offerExpiresAt DateTime?      @map("offer_expires_at")
+
+  // Relations
+  case       Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  consultant User @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, consultantId])
+  @@map("case_assignments")
+}
+
+model CaseMessage {
+  id          String      @id @default(cuid())
+  caseId      String      @map("case_id")
+  senderId    String      @map("sender_id")
+  senderRole  Role        @map("sender_role")
+  messageType MessageType @default(TEXT) @map("message_type")
+  body        String?
+  fileUrl     String?     @map("file_url")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  case   Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("case_messages")
+}
+
+model CaseDocument {
+  id           String         @id @default(cuid())
+  caseId       String         @map("case_id")
+  consultantId String         @map("consultant_id")
+  type         DocumentType   @default(DRAFT)
+  status       DocumentStatus @default(DRAFT)
+  fileName     String         @map("file_name")
+  fileUrl      String         @map("file_url")
+  fileSize     Int?           @map("file_size")
+  reviewComment String?       @map("review_comment")
+  uploadedAt   DateTime       @default(now()) @map("uploaded_at")
+  reviewedAt   DateTime?      @map("reviewed_at")
+
+  // Relations
+  case       Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  consultant User @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+
+  @@map("case_documents")
+}
+
+model Payout {
+  id           String       @id @default(cuid())
+  consultantId String       @map("consultant_id")
+  caseId       String       @map("case_id")
+  amountRub    Float        @map("amount_rub")
+  status       PayoutStatus @default(PLANNED)
+  description  String?
+  dueDate      DateTime?    @map("due_date")
+  paidAt       DateTime?    @map("paid_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  consultant User @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+  case       Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("payouts")
+}
+
+model GlobalSettings {
+  id               String  @id @default(cuid())
+  isReviewRequired Boolean @default(true) @map("is_review_required")
+  useEmailDelivery Boolean @default(false) @map("use_email_delivery")
+  offerTimeoutHours Int    @default(24) @map("offer_timeout_hours")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("global_settings")
+}
+
+model EmailLog {
+  id             String      @id @default(cuid())
+  caseId         String      @map("case_id")
+  recipientEmail String      @map("recipient_email")
+  subject        String?
+  sentAt         DateTime    @default(now()) @map("sent_at")
+  status         EmailStatus @default(SENT)
+  errorMessage   String?     @map("error_message")
+
+  // Relations
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("email_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  oldValue   String?  @map("old_value")
+  newValue   String?  @map("new_value")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
