@@ -11,7 +11,7 @@ from fastapi.exceptions import RequestValidationError
 
 from .config import settings
 from .models import get_prisma_client, disconnect_prisma
-from .routers import auth_router, consultant_router, admin_router
+from .routers import auth_router, consultant_router, admin_router, client_router
 
 # Configure logging
 logging.basicConfig(
@@ -120,6 +120,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 app.include_router(auth_router, prefix=settings.api_prefix)
 app.include_router(consultant_router, prefix=settings.api_prefix)
 app.include_router(admin_router, prefix=settings.api_prefix)
+app.include_router(client_router, prefix=settings.api_prefix)
 
 
 # Health check endpoint

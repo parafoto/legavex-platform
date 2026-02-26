@@ -22,6 +22,7 @@ enum Role {
 
 enum CaseStatus {
   NEW
+  WAITING_TRIAGE
   WAITING_CONSULTANT
   IN_PROGRESS
   REVIEW
@@ -107,18 +108,21 @@ model ConsultantProfile {
 }
 
 model Case {
-  id               String     @id @default(cuid())
-  clientId         String     @map("client_id")
-  title            String
-  description      String
-  clientEmail      String?    @map("client_email")
-  budgetMin        Float      @map("budget_min")
-  budgetMax        Float      @map("budget_max")
-  status           CaseStatus @default(NEW)
-  isReviewRequired Boolean    @default(true) @map("is_review_required")
-  useEmailDelivery Boolean    @default(false) @map("use_email_delivery")
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
+  id                String     @id @default(cuid())
+  clientId          String     @map("client_id")
+  title             String
+  description       String
+  clientEmail       String?    @map("client_email")
+  budgetMin         Float      @map("budget_min")
+  budgetMax         Float      @map("budget_max")
+  region            String?
+  budgetExpectation Float?     @map("budget_expectation")
+  attachments       String?    // JSON array of URLs
+  status            CaseStatus @default(NEW)
+  isReviewRequired  Boolean    @default(true) @map("is_review_required")
+  useEmailDelivery  Boolean    @default(false) @map("use_email_delivery")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
 
   // Relations
   client      User             @relation("ClientCases", fields: [clientId], references: [id], onDelete: Cascade)

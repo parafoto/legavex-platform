@@ -12,6 +12,7 @@ from .user import Role
 class CaseStatus(str, Enum):
     """Case status enum."""
     NEW = "NEW"
+    WAITING_TRIAGE = "WAITING_TRIAGE"
     WAITING_CONSULTANT = "WAITING_CONSULTANT"
     IN_PROGRESS = "IN_PROGRESS"
     REVIEW = "REVIEW"
@@ -99,3 +100,19 @@ class AssignConsultantRequest(BaseModel):
 class CaseStatusUpdate(BaseModel):
     """Schema for updating case status."""
     status: CaseStatus
+
+
+class CaseCreateRequest(BaseModel):
+    """Схема запроса на создание дела клиентом."""
+    title: str = Field(..., min_length=5, max_length=200, description="Название дела")
+    description: str = Field(..., min_length=20, max_length=5000, description="Описание проблемы")
+    budget_expectation_rub: float = Field(..., gt=0, description="Ожидаемый бюджет в рублях")
+    region: str = Field(..., min_length=2, max_length=100, description="Регион")
+    attachments: Optional[List[str]] = Field(default=None, description="URLs вложений")
+
+
+class CaseCreateResponse(BaseModel):
+    """Схема ответа при создании дела."""
+    case_id: str = Field(..., description="ID созданного дела")
+    status: str = Field(..., description="Статус дела")
+    message: str = Field(default="Дело успешно создано и отправлено на рассмотрение")

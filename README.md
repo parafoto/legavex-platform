@@ -84,10 +84,12 @@ legasvex-platform/
 ### Статусы дел
 
 ```
-NEW → WAITING_CONSULTANT → IN_PROGRESS → REVIEW → DONE
-         ↓                      ↓           ↓
-    ESCALATED              CANCELLED    (rejected → IN_PROGRESS)
+WAITING_TRIAGE → NEW → WAITING_CONSULTANT → IN_PROGRESS → REVIEW → DONE
+                           ↓                      ↓           ↓
+                      ESCALATED              CANCELLED    (rejected → IN_PROGRESS)
 ```
+
+> **WAITING_TRIAGE** — новый статус для дел, созданных клиентами через API. Дело ожидает триажа перед назначением консультанта.
 
 ---
 
@@ -115,6 +117,16 @@ NEW → WAITING_CONSULTANT → IN_PROGRESS → REVIEW → DONE
 | POST | `/cases/{id}/documents` | Загрузить документ |
 | POST | `/cases/{id}/documents/{doc_id}/submit` | Отправить документ |
 | GET | `/payouts` | Список выплат |
+
+### Клиент (`/api/client/`)
+
+| Метод | Endpoint | Описание |
+|-------|----------|----------|
+| POST | `/cases` | Создать новое дело (статус WAITING_TRIAGE) |
+| GET | `/cases` | Список своих дел |
+| GET | `/cases/{id}` | Детали своего дела |
+
+> Подробный пример использования см. в `apps/web/examples/create-case-example.md`
 
 ### Администратор (`/api/admin/`)
 
