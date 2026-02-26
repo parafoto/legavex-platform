@@ -1,4 +1,4 @@
-# LegaVex Web Frontend
+# LegasVex Web Frontend
 
 > ⚠️ **Заглушка** - фронтенд будет реализован на Этапе 2
 

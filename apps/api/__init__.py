@@ -1,1 +1,1 @@
-"""LegaVex Advisor Portal API."""
+"""LegasVex Advisor Portal API."""

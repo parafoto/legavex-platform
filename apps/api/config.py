@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     )
     
     # Database
-    database_url: str = "postgresql://user:password@localhost:5432/legavex_platform"
+    database_url: str = "postgresql://user:password@localhost:5432/legasvex_platform"
     
     # JWT Authentication
     jwt_secret: str = "your-secret-key-change-in-production"
@@ -26,9 +26,9 @@ class Settings(BaseSettings):
     # SMTP / Email
     smtp_host: str = "smtp.protonmail.ch"
     smtp_port: int = 587
-    smtp_user: str = "legavex@proton.me"
+    smtp_user: str = "legasvex@proton.me"
     smtp_password: str = ""
-    email_from_name: str = "LegaVex"
+    email_from_name: str = "LegasVex"
     email_enabled: bool = False  # Set to True when ready to send real emails
     
     # Business Logic

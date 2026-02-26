@@ -66,7 +66,7 @@ class EmailService:
         """
         try:
             # Build email content
-            subject = f"LegaVex: Документ по делу «{case_title}»"
+            subject = f"LegasVex: Документ по делу «{case_title}»"
             
             if anonymize_consultant or not consultant_name:
                 greeting = "Уважаемый клиент,"
@@ -82,7 +82,7 @@ class EmailService:
 Если у вас есть вопросы, пожалуйста, свяжитесь с нами через платформу.
 
 ---
-LegaVex — юридическая помощь на стороне человека.
+LegasVex — юридическая помощь на стороне человека.
 Это письмо отправлено через защищённый канал.
 """
             
@@ -169,7 +169,7 @@ LegaVex — юридическая помощь на стороне челове
                     data={
                         "caseId": case_id,
                         "recipientEmail": recipient_email,
-                        "subject": f"LegaVex: Документ по делу «{case_title}»",
+                        "subject": f"LegasVex: Документ по делу «{case_title}»",
                         "status": "FAILED",
                         "errorMessage": str(e),
                     }

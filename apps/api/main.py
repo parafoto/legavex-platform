@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     Handles startup and shutdown events.
     """
     # Startup
-    logger.info("Starting LegaVex Advisor Portal API...")
+    logger.info("Starting LegasVex Advisor Portal API...")
     
     try:
         # Connect to database
@@ -41,16 +41,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     yield
     
     # Shutdown
-    logger.info("Shutting down LegaVex Advisor Portal API...")
+    logger.info("Shutting down LegasVex Advisor Portal API...")
     await disconnect_prisma()
     logger.info("Database disconnected")
 
 
 # Create FastAPI application
 app = FastAPI(
-    title="LegaVex Advisor Portal API",
+    title="LegasVex Advisor Portal API",
     description="""
-    Backend API for LegaVex Advisor Portal.
+    Backend API for LegasVex Advisor Portal.
     
     ## Features
     
@@ -133,7 +133,7 @@ async def health_check():
     return {
         "status": "healthy",
         "version": "1.0.0",
-        "service": "legavex-api",
+        "service": "legasvex-api",
     }
 
 
@@ -145,7 +145,7 @@ async def root():
         API information
     """
     return {
-        "name": "LegaVex Advisor Portal API",
+        "name": "LegasVex Advisor Portal API",
         "version": "1.0.0",
         "docs": "/docs" if settings.debug else "Disabled in production",
         "health": "/health",
