@@ -1,7 +1,7 @@
 """Case business logic service."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
 
 from prisma import Prisma
@@ -154,7 +154,7 @@ class CaseService:
             return False, "Assignment not found or already responded"
         
         # Check if offer has expired
-        if assignment.offerExpiresAt and assignment.offerExpiresAt < datetime.utcnow():
+        if assignment.offerExpiresAt and assignment.offerExpiresAt < datetime.now(timezone.utc):
             return False, "Offer has expired"
         
         # Update assignment status
@@ -162,7 +162,7 @@ class CaseService:
             where={"id": assignment.id},
             data={
                 "status": "ACCEPTED",
-                "respondedAt": datetime.utcnow(),
+                "respondedAt": datetime.now(timezone.utc),
             }
         )
         
@@ -234,7 +234,7 @@ class CaseService:
             where={"id": assignment.id},
             data={
                 "status": "DECLINED",
-                "respondedAt": datetime.utcnow(),
+                "respondedAt": datetime.now(timezone.utc),
             }
         )
         
@@ -343,7 +343,7 @@ class CaseService:
         timeout_hours = settings_record.offerTimeoutHours if settings_record else 24
         
         # Create assignment
-        expires_at = datetime.utcnow() + timedelta(hours=timeout_hours)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=timeout_hours)
         
         assignment = await self.db.caseassignment.create(
             data={
@@ -534,7 +534,7 @@ class CaseService:
             where={"id": document_id},
             data={
                 "status": "APPROVED",
-                "reviewedAt": datetime.utcnow(),
+                "reviewedAt": datetime.now(timezone.utc),
             }
         )
         
@@ -610,7 +610,7 @@ class CaseService:
             data={
                 "status": "REJECTED",
                 "reviewComment": comment,
-                "reviewedAt": datetime.utcnow(),
+                "reviewedAt": datetime.now(timezone.utc),
             }
         )
         
